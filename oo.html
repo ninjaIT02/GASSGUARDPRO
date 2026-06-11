@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GasGuard Pro IoT Dashboard</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --bg-dark:    #0a0f1e;
+      --bg-card:    #111827;
+      --bg-card2:   #1a2236;
+      --accent:     #00d4ff;
+      --accent2:    #0066ff;
+      --green:      #00ff88;
+      --yellow:     #ffd600;
+      --red:        #ff3d5a;
+      --text:       #e2e8f0;
+      --text-muted: #64748b;
+      --border:     #1e3a5f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg-dark); color: var(--text); font-family: 'Exo 2', sans-serif; min-height: 100vh; }
+    
+    .navbar-custom { background: rgba(10,15,30,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); padding: 12px 24px; }
+    .navbar-brand { font-family: 'Share Tech Mono', monospace; color: var(--accent) !important; font-size: 1.2rem; letter-spacing: 2px; }
+    .nav-status { font-size: 0.75rem; color: var(--text-muted); font-family: 'Share Tech Mono', monospace; }
+    .live-dot { display: inline-block; width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; margin-right: 6px; }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(1.4); } }
+
+    .main-wrap { padding: 28px 20px; max-width: 1200px; margin: auto; }
+    .config-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+    .config-card h6 { color: var(--accent); font-family: 'Share Tech Mono', monospace; letter-spacing: 1px; font-size: 0.8rem; margin-bottom: 14px; }
+    .form-control, .form-select { background: var(--bg-dark) !important; border: 1px solid var(--border) !important; color: var(--text) !important; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; }
+    .form-label { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; }
+
+    .sensor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 16px; margin-bottom: 24px; }
+    .sensor-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 25px 20px; text-align: center; position: relative; overflow: hidden; }
+    .sensor-card::before { content: ''; position: absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+    .sensor-icon { font-size: 2rem; margin-bottom: 8px; }
+    .sensor-val { font-family: 'Share Tech Mono', monospace; font-size: 2.5rem; font-weight: 700; color: var(--accent); line-height: 1; }
+    .sensor-unit { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+    .sensor-label { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 8px; }
+
+    .status-badge { font-family: 'Share Tech Mono', monospace; font-size: 1.3rem; font-weight: 700; letter-spacing: 2px; padding: 6px 12px; border-radius: 8px; display: inline-block; }
+    .status-AMAN      { color: var(--green);  background: rgba(0,255,136,0.1);  border:1px solid var(--green); }
+    .status-BERBAHAYA { color: var(--red);    background: rgba(255,61,90,0.1);  border:1px solid var(--red); animation: blinker 1s linear infinite; }
+    @keyframes blinker { 50% { opacity: 0.4; } }
+
+    .btn-crud { border-radius: 8px; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; letter-spacing: 1px; padding: 8px 16px; }
+    .btn-read    { background: var(--accent2); border:none; color:#fff; }
+    .btn-read:hover { background: var(--accent); color: var(--bg-dark); }
+    .btn-add     { background: transparent; border: 1px solid var(--green); color: var(--green); }
+    .btn-add:hover { background: var(--green); color: var(--bg-dark); }
+    .btn-delete  { background: transparent; border: 1px solid var(--red); color: var(--red); }
+    .btn-delete:hover { background: var(--red); color: #fff; }
+
+    .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .table-head-bar { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .table-head-bar h6 { font-family: 'Share Tech Mono', monospace; color: var(--accent); font-size: 0.85rem; }
+    .table tbody td { background: var(--bg-card); border-color: var(--border); color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; }
+    .badge-on { background: rgba(255,61,90,0.15); color: var(--red); border: 1px solid var(--red); padding:2px 6px; border-radius:4px; }
+    .badge-off { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid var(--green); padding:2px 6px; border-radius:4px; }
+    
+    .modal-content { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); }
+    .modal-header, .modal-footer { border-color: var(--border); }
+    .toast-custom { position: fixed; bottom: 24px; right: 24px; background: var(--bg-card2); border: 1px solid var(--accent); color: var(--text); padding: 12px 20px; border-radius: 10px; font-family: 'Share Tech Mono', monospace; display: none; z-index: 9999; }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+<nav class="navbar-custom d-flex justify-content-between align-items-center">
+  <div class="navbar-brand"><i class="bi bi-shield-lock-fill me-2"></i>GASGUARD_PRO.IOT</div>
+  <div class="nav-status"><span class="live-dot"></span><span id="lastUpdate">Disconnected</span></div>
+</nav>
+
+<div class="main-wrap">
+  <div class="config-card">
+    <h6><i class="bi bi-gear-fill me-2"></i>SINKRONISASI DATABASE</h6>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Firebase Host URL</label>
+        <input type="text" class="form-control" id="fbHost" value="gasguard-pro-b6eb6-default-rtdb.asia-southeast1.firebasedatabase.app" readonly/>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Database Secret / Auth Token</label>
+        <input type="password" class="form-control" id="fbAuth" placeholder="Masukkan Database Secret Token Anda"/>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-read btn-crud w-100" onclick="connectFirebase()"><i class="bi bi-plug-fill me-1"></i>Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sensor-grid">
+    <div class="sensor-card">
+      <div class="sensor-icon">💨</div>
+      <div class="sensor-val" id="cardGas">--</div>
+      <div class="sensor-unit">ADC (0 - 1023)</div>
+      <div class="sensor-label">Kadar Gas/Asap</div>
+    </div>
+    <div class="sensor-card">
+      <div class="sensor-icon">🔊</div>
+      <div class="sensor-val" id="cardBuzzer">--</div>
+      <div class="sensor-unit">Pin D5</div>
+      <div class="sensor-label">Buzzer Alarm</div>
+    </div>
+    <div class="sensor-card">
+      <div class="sensor-icon">🔌</div>
+      <div class="sensor-val" id="cardRelay">--</div>
+      <div class="sensor-unit">Pin D6</div>
+      <div class="sensor-label">Relay Status</div>
+    </div>
+    <div class="sensor-card">
+      <div class="sensor-icon">📡</div>
+      <div id="cardStatus" class="status-badge status-default mt-2">STANDBY</div>
+      <div class="sensor-label mt-2">Kondisi Ruangan</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-head-bar">
+      <h6><i class="bi bi-folder-symlink me-2"></i>MANAJEMEN RIWAYAT LOG DATA (CRUD PANEL)</h6>
+      <div class="d-flex gap-2">
+        <button class="btn btn-crud btn-add" onclick="openAddModal()"><i class="bi bi-plus-lg me-1"></i>ADD LOG</button>
+        <button class="btn btn-crud btn-delete" onclick="clearAllLogs()"><i class="bi bi-trash me-1"></i>CLEAR ALL</button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 text-center">
+        <thead>
+          <tr style="background: var(--bg-card2); color: var(--text-muted); font-size: 0.75rem;">
+            <th>LOG ID</th>
+            <th>KADAR GAS</th>
+            <th>ALARM BUZZER</th>
+            <th>RELAY SISTEM</th>
+            <th>STATUS</th>
+            <th>AKSI</th>
+          </tr>
+        </thead>
+        <tbody id="logTableBody">
+          <tr><td colspan="6" class="text-muted py-4">Masukkan token lalu klik Connect untuk memicu data stream log...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="crudModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">MANUAL INSERT LOG DATA</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editKey"/>
+        <div class="mb-3">
+          <label class="form-label">Kadar Gas (ADC Value)</label>
+          <input type="number" class="form-control" id="inputGas" placeholder="Contoh: 250"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Status Buzzer</label>
+          <select class="form-select" id="inputBuzzer">
+            <option value="OFF">OFF (Muted)</option>
+            <option value="ON">ON (Active)</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Status Relay</label>
+          <select class="form-select" id="inputRelay">
+            <option value="OFF">OFF (Standby)</option>
+            <option value="ON">ON (Running)</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Kondisi</label>
+          <select class="form-select" id="inputStatus">
+            <option value="AMAN">AMAN</option>
+            <option value="BERBAHAYA">BERBAHAYA</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-crud btn-delete" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-crud btn-add" onclick="executeSave()">Simpan Log</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-custom" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let db;
+  window.onload = () => {
+    let token = localStorage.getItem('gas_token_2026') || '';
+    if(token) { document.getElementById('fbAuth').value = token; connectFirebase(); }
+  };
+
+  function connectFirebase() {
+    let host = document.getElementById('fbHost').value.trim();
+    let auth = document.getElementById('fbAuth').value.trim();
+    if(!auth) { showToast("⚠️ Masukkan Token Rahasia Proyek Anda!"); return; }
+    
+    localStorage.setItem('gas_token_2026', auth);
+    
+    let config = { apiKey: auth, authDomain: "gasguard-pro-b6eb6.firebaseapp.com", databaseURL: "https://" + host, projectId: "gasguard-pro-b6eb6" };
+    
+    if (firebase.apps.length > 0) { firebase.app().delete().then(() => startSync(config)); } 
+    else { startSync(config); }
+  }
+
+  function startSync(config) {
+    firebase.initializeApp(config);
+    db = firebase.database();
+    showToast("🔌 Menghubungkan Link Realtime Stream...");
+
+    // Realtime Read untuk Live Data Card
+    db.ref('Pendeteksi_Asap/live').on('value', snap => {
+      let d = snap.val();
+      if(d) {
+        document.getElementById('cardGas').innerText = d.kadar_gas || '0';
+        document.getElementById('cardBuzzer').innerHTML = d.buzzer === "ON" ? '<span class="badge-on">ACTIVE</span>' : '<span class="badge-off">MUTED</span>';
+        document.getElementById('cardRelay').innerHTML = d.relay === "ON" ? '<span class="badge-on">RUNNING</span>' : '<span class="badge-off">STANDBY</span>';
+        let b = document.getElementById('cardStatus'); b.innerText = d.status || 'AMAN';
+        b.className = d.status === "BERBAHAYA" ? "status-badge status-BERBAHAYA" : "status-badge status-AMAN";
+        document.getElementById('lastUpdate').innerText = "LIVE - STREAMING";
+        document.getElementById('lastUpdate').style.color = "var(--green)";
+      }
+    });
+
+    // Realtime Read untuk Riwayat CRUD Table
+    db.ref('Pendeteksi_Asap/riwayat').on('value', snap => {
+      let table = document.getElementById('logTableBody');
+      table.innerHTML = "";
+      let d = snap.val();
+      if(!d) { table.innerHTML = `<tr><td colspan="6" class="text-muted">Data kosong. Isilah dari NodeMCU atau klik ADD LOG.</td></tr>`; return; }
+      
+      Object.entries(d).reverse().forEach(([key, val]) => {
+        let bz = val.buzzer === "ON" ? '<span class="badge-on">ON</span>' : '<span class="badge-off">OFF</span>';
+        let rl = val.relay === "ON" ? '<span class="badge-on">ON</span>' : '<span class="badge-off">OFF</span>';
+        let st = val.status === "BERBAHAYA" ? 'color:var(--red); font-weight:bold;' : 'color:var(--green);';
+        
+        let row = `<tr>
+          <td>${key}</td>
+          <td>${val.kadar_gas}</td>
+          <td>${bz}</td>
+          <td>${rl}</td>
+          <td style="${st}">${val.status}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-info me-1" onclick="openEditModal('${key}',${val.kadar_gas},'${val.buzzer}','${val.relay}','${val.status}')"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteSingleLog('${key}')"><i class="bi bi-trash"></i></button>
+          </td>
+        </tr>`;
+        table.insertAdjacentHTML('beforeend', row);
+      });
+    });
+  }
+
+  // --- OPERASI CRUD DATA ---
+  function openAddModal() {
+    document.getElementById('modalTitle').innerText = "MANUAL INSERT LOG DATA";
+    document.getElementById('editKey').value = "";
+    document.getElementById('inputGas').value = "";
+    new bootstrap.Modal(document.getElementById('crudModal')).show();
+  }
+
+  function openEditModal(key, gas, bz, rl, st) {
+    document.getElementById('modalTitle').innerText = "EDIT LOG DATA: " + key;
+    document.getElementById('editKey').value = key;
+    document.getElementById('inputGas').value = gas;
+    document.getElementById('inputBuzzer').value = bz;
+    document.getElementById('inputRelay').value = rl;
+    document.getElementById('inputStatus').value = st;
+    new bootstrap.Modal(document.getElementById('crudModal')).show();
+  }
+
+  function executeSave() {
+    let key = document.getElementById('editKey').value;
+    let gas = parseInt(document.getElementById('inputGas').value) || 0;
+    let bz = document.getElementById('inputBuzzer').value;
+    let rl = document.getElementById('inputRelay').value;
+    let st = document.getElementById('inputStatus').value;
+
+    let logPayload = { kadar_gas: gas, buzzer: bz, relay: rl, status: st, timestamp: Date.now().toString() };
+
+    if(key) { // UPDATE
+      db.ref('Pendeteksi_Asap/riwayat/' + key).update(logPayload)
+        .then(() => { showToast("📝 Log Berhasil Diupdate!"); bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide(); });
+    } else { // CREATE
+      db.ref('Pendeteksi_Asap/riwayat').push(logPayload)
+        .then(() => { showToast("🚀 Log Baru Ditambahkan!"); bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide(); });
+    }
+  }
+
+  function deleteSingleLog(key) {
+    if(confirm("Hapus log record ini secara permanen?")) {
+      db.ref('Pendeteksi_Asap/riwayat/' + key).remove().then(() => showToast("🗑️ Log Dihapus!"));
+    }
+  }
+
+  function clearAllLogs() {
+    if(confirm("⚠️ PERINGATAN: Bersihkan seluruh riwayat tabel log?")) {
+      db.ref('Pendeteksi_Asap/riwayat').remove().then(() => showToast("💥 Seluruh Riwayat Log Dibersihkan!"));
+    }
+  }
+
+  function showToast(m) { let t = document.getElementById('toast'); t.innerText = m; t.style.display='block'; setTimeout(()=>t.style.display='none', 3000); }
+</script>
+</body>
+</html>
